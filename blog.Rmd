@@ -1,0 +1,98 @@
+---
+title: "EDS 222 Final Project"
+author: "Dalila Lara"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+# Tittle
+
+### Introduction/Question
+
+### Background/Importance
+
+### Data
+
+```{r}
+# Loading in packages 
+library(tidyverse)
+library(ggplot2)
+library(janitor)
+library(ggpubr)
+
+```
+
+```{r}
+# root directory 
+rootdir <- ("~/Desktop/MEDS/UCSB/EDS_222/final_proj")
+
+#data directory
+datadir <- file.path(rootdir, "data")
+```
+
+```{r}
+#Particulate Matter for 2010 - 2022 
+  #calling all data in folder
+data_names <- list.files(path= "data/pm", pattern=".csv", all.files=TRUE,
+    full.names=TRUE)
+  #reading in csv data & cleaning column names
+pm_cla <- read_csv(data_names) %>% clean_names()
+  #sep date and time into two columns 
+cleaning_df <- tidyr::separate(pm_cla, date_time, c("date", "time"), sep = " ")
+
+df <- cleaning_df %>%
+  mutate(year = format(as.Date(cleaning_df$date, format="%m/%d/%Y"),"%Y")) %>%
+  mutate(month = format(as.Date(cleaning_df$date, format="%m/%d/%Y"),"%m")) %>%
+  mutate(day = format(as.Date(cleaning_df$date, format="%m/%d/%Y"),"%d"))
+
+# 
+```
+
+```{r}
+#Avg Yearly PM 
+pm_sum_day <- df %>% 
+  select(date, value, year, month, day) %>%
+  group_by(year) %>%
+  summarise(value = mean(value)) 
+
+pmy <- ggplot(data = pm_sum_day, aes(x = year, y = value)) + 
+  geom_point(color = "cyan3") +
+  theme_minimal() +
+  labs(title = "Particulate Matter Yearly Avg 2010 - 2022",
+       x = "Year", y = "PM") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+
+# Monthly Avg over years PM
+ pm_m_y <- df %>%
+  select(month, value) %>% 
+  group_by(month) %>%
+  summarise(value = mean(value))
+
+pmm <- ggplot(data = pm_m_y, aes(x = month, y = value)) + 
+  geom_point(color = "cyan3") +
+  theme_minimal() +
+  labs(title = "Particulate Matter Avg Avg 2010 - 2022",
+       x = "Month", y = "PM") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+# Day Avg over years PM
+pm_d <- df %>%
+  select(day, value) %>% 
+  group_by(day) %>%
+  summarise(value = mean(value))
+
+pmd <- ggplot(data = pm_d, aes(x = day, y = value)) + 
+  geom_point(color = "cyan3") +
+  theme_minimal() +
+  labs(title = "Particulate Matter Avg Avg 2010 - 2022",
+       x = "Day", y = "PM") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+ggarrange(pmy, pmm, pmd)
+
+# 1 2012
+# 2 2014
+# 3 2010
+
+```
